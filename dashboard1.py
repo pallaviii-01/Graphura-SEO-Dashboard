@@ -108,44 +108,45 @@ st.markdown("""
 # ─────────────────────────────────────────────────────────────────────────────
 # DATA LOADING
 # ─────────────────────────────────────────────────────────────────────────────
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data():
-    master = pd.read_excel(
-        "Graphura_SEO_Master_Dataset_Final.xlsx",
-        sheet_name="Master SEO Dataset"
-    )
-    gap = pd.read_excel(
-        "Graphura_Competitor_SEO_Analysis.xlsx",
-        sheet_name="Content Gap Analysis",
-        header=1
-    )
+    master = pd.read_excel("Graphura_SEO_Master_Dataset_Final.xlsx", sheet_name="Master SEO Dataset")
+    gap = pd.read_excel("Graphura_Competitor_SEO_Analysis.xlsx", sheet_name="Content Gap Analysis", header=1)
+
+    # ✅ FIX: CLEAN COLUMNS
+    master.columns = master.columns.str.strip()
+    gap.columns = gap.columns.str.strip()
+
     gap = gap.iloc[1:].reset_index(drop=True)
+
     gap.columns = [
         "Keyword", "Keyword_Category", "Search_Volume", "Keyword_Difficulty",
         "Opportunity_Score", "Graphura_Ranking", "Best_Competitor_Rank",
         "Ranking_Gap", "Competitors_Ahead", "No_Competitors_Ahead",
         "Gap_Priority_Score", "Recommended_Content", "Action_Required"
     ]
+
     for col in ["Search_Volume", "Opportunity_Score", "Gap_Priority_Score",
                 "No_Competitors_Ahead", "Graphura_Ranking", "Keyword_Difficulty",
                 "Best_Competitor_Rank", "Ranking_Gap"]:
         gap[col] = pd.to_numeric(gap[col], errors="coerce")
 
-    roadmap = pd.read_excel(
-        "Graphura_Competitor_SEO_Analysis.xlsx",
-        sheet_name="SEO Roadmap",
-        header=0
-    )
+    roadmap = pd.read_excel("Graphura_Competitor_SEO_Analysis.xlsx", sheet_name="SEO Roadmap", header=0)
+    roadmap.columns = roadmap.columns.str.strip()
     roadmap = roadmap.iloc[1:].reset_index(drop=True)
+
     roadmap.columns = [
         "Priority_Rank", "Month", "Keyword", "Keyword_Category",
         "Search_Volume", "Graphura_Ranking", "Gap_Priority_Score",
         "Content_to_Create", "Action", "Target_Ranking", "Effort_Level"
     ]
+
     for col in ["Priority_Rank", "Search_Volume", "Graphura_Ranking", "Gap_Priority_Score"]:
         roadmap[col] = pd.to_numeric(roadmap[col], errors="coerce")
 
     return master, gap, roadmap
+
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPER: KPI card HTML
@@ -372,14 +373,17 @@ with tab1:
     ].reset_index(drop=True)
     top25.index += 1
 
-    def highlight_priority(val):
-        colors = {"High": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
-                  "Medium": "background-color:#FFFDE7;color:#E65100;font-weight:bold",
-                  "Low": "background-color:#FFEBEE;color:#B71C1C;font-weight:bold"}
-        return colors.get(val, "")
+  def highlight_priority(val):
+    colors = {
+        "High": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
+        "Medium": "background-color:#FFFDE7;color:#E65100;font-weight:bold",
+        "Low": "background-color:#FFEBEE;color:#B71C1C;font-weight:bold"
+    }
+    return colors.get(val, "")
 
-    styled = top25.style.applymap(highlight_priority, subset=["Priority"])
-    st.dataframe(styled, use_container_width=True, height=420)
+
+   styled = top25.style.map(highlight_priority, subset=["Priority"])
+    st.write(styled)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — CONTENT GAP
@@ -611,22 +615,28 @@ with tab3:
                          "Gap Score","Content Type","Action","Target Rank","Effort"]
 
     def color_effort(val):
-        m = {"Low": "background-color:#E8F5E9;color:#1B5E20",
-             "Medium": "background-color:#FFFDE7;color:#E65100",
-             "High": "background-color:#FFEBEE;color:#B71C1C"}
-        return m.get(val, "")
+    m = {
+        "Low": "background-color:#E8F5E9;color:#1B5E20",
+        "Medium": "background-color:#FFFDE7;color:#E65100",
+        "High": "background-color:#FFEBEE;color:#B71C1C"
+    }
+    return m.get(val, "")
 
-    def color_month(val):
-        m = {"Month 1": "background-color:#E8EAF6;color:#1A237E;font-weight:bold",
-             "Month 2": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
-             "Month 3": "background-color:#F3E5F5;color:#4A148C;font-weight:bold"}
-        return m.get(val, "")
+def color_month(val):
+    m = {
+        "Month 1": "background-color:#E8EAF6;color:#1A237E;font-weight:bold",
+        "Month 2": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
+        "Month 3": "background-color:#F3E5F5;color:#4A148C;font-weight:bold"
+    }
+    return m.get(val, "")
 
-    styled_road = road_disp.style \
-        .applymap(color_effort, subset=["Effort"]) \
-        .applymap(color_month, subset=["Month"])
-    st.dataframe(styled_road, use_container_width=True, height=450)
 
+
+styled_road = road_disp.style \
+    .map(color_effort, subset=["Effort"]) \
+    .map(color_month, subset=["Month"])
+
+st.write(styled_road)
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — CATEGORY INSIGHTS
 # ══════════════════════════════════════════════════════════════════════════════
