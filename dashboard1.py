@@ -373,13 +373,13 @@ with tab1:
     ].reset_index(drop=True)
     top25.index += 1
 
-  def highlight_priority(val):
-    colors = {
+   def highlight_priority(val):
+     colors = {
         "High": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
         "Medium": "background-color:#FFFDE7;color:#E65100;font-weight:bold",
         "Low": "background-color:#FFEBEE;color:#B71C1C;font-weight:bold"
     }
-    return colors.get(val, "")
+     return colors.get(val, "")
 
 
    styled = top25.style.map(highlight_priority, subset=["Priority"])
