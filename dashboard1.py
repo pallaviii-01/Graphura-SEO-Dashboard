@@ -113,7 +113,6 @@ def load_data():
     master = pd.read_excel("Graphura_SEO_Master_Dataset_Final.xlsx", sheet_name="Master SEO Dataset")
     gap = pd.read_excel("Graphura_Competitor_SEO_Analysis.xlsx", sheet_name="Content Gap Analysis", header=1)
 
-    # ✅ FIX: CLEAN COLUMNS
     master.columns = master.columns.str.strip()
     gap.columns = gap.columns.str.strip()
 
@@ -145,7 +144,6 @@ def load_data():
         roadmap[col] = pd.to_numeric(roadmap[col], errors="coerce")
 
     return master, gap, roadmap
-
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -293,7 +291,6 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     col_left, col_right = st.columns([1, 1])
 
-    # Priority Donut Chart
     with col_left:
         st.markdown('<div class="section-header">▌ Priority Distribution</div>', unsafe_allow_html=True)
         priority_counts = dff["Priority"].value_counts().reset_index()
@@ -316,7 +313,6 @@ with tab1:
         )
         st.plotly_chart(fig_donut, use_container_width=True)
 
-    # Search Intent Bar
     with col_right:
         st.markdown('<div class="section-header">▌ Search Intent Mix</div>', unsafe_allow_html=True)
         intent_counts = dff["Search Intent"].value_counts().reset_index()
@@ -339,9 +335,8 @@ with tab1:
 
     st.markdown("---")
 
-    # Scatter: Search Volume vs Opportunity Score
     st.markdown('<div class="section-header">▌ Search Volume vs Opportunity Score — Bubble Chart</div>', unsafe_allow_html=True)
-    top_scatter = dff.nlargest(200, "Opportunity Score")  # limit for performance
+    top_scatter = dff.nlargest(200, "Opportunity Score")
     color_map_s = {"High": "#1B5E20", "Medium": "#F9A825", "Low": "#B71C1C"}
     fig_scatter = px.scatter(
         top_scatter,
@@ -365,7 +360,6 @@ with tab1:
 
     st.markdown("---")
 
-    # Top Keywords Table
     st.markdown('<div class="section-header">▌ Top 25 Keywords by Opportunity Score</div>', unsafe_allow_html=True)
     top25 = dff.nlargest(25, "Opportunity Score")[
         ["Keyword", "Keyword Category", "Search Volume", "Keyword Difficulty",
@@ -373,16 +367,17 @@ with tab1:
     ].reset_index(drop=True)
     top25.index += 1
 
-def highlight_priority(val):
-    colors = {
-        "High": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
-        "Medium": "background-color:#FFFDE7;color:#E65100;font-weight:bold",
-        "Low": "background-color:#FFEBEE;color:#B71C1C;font-weight:bold"
-    }
-   return colors.get(val, "")
+    # FIX 1: corrected indentation of highlight_priority and return statement
+    def highlight_priority(val):
+        colors = {
+            "High": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
+            "Medium": "background-color:#FFFDE7;color:#E65100;font-weight:bold",
+            "Low": "background-color:#FFEBEE;color:#B71C1C;font-weight:bold"
+        }
+        return colors.get(val, "")
 
-
-   styled = top25.style.map(highlight_priority, subset=["Priority"])
+    # FIX 2: moved styled assignment inside the tab block (was orphaned outside)
+    styled = top25.style.map(highlight_priority, subset=["Priority"])
     st.write(styled)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -412,36 +407,33 @@ with tab2:
     gc1, gc2 = st.columns([1, 1])
 
     with gc1:
-        # Content type distribution
         st.markdown('<div class="section-header">▌ Recommended Content Type Distribution</div>', unsafe_allow_html=True)
         ct_counts = df_gap["Recommended_Content"].value_counts().reset_index()
         ct_counts.columns = ["Content Type", "Count"]
         fig_ct = px.bar(ct_counts, x="Content Type", y="Count", text="Count",
-                       color="Content Type",
-                       color_discrete_sequence=["#1565C0", "#1B5E20", "#E65100"])
+                        color="Content Type",
+                        color_discrete_sequence=["#1565C0", "#1B5E20", "#E65100"])
         fig_ct.update_traces(textposition="outside")
-        fig_ct.update_layout(height=320, showlegend=False, margin=dict(t=20,b=10,l=10,r=10),
-                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                            yaxis=dict(gridcolor="#ECEFF1"), xaxis_title="", yaxis_title="")
+        fig_ct.update_layout(height=320, showlegend=False, margin=dict(t=20, b=10, l=10, r=10),
+                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                              yaxis=dict(gridcolor="#ECEFF1"), xaxis_title="", yaxis_title="")
         st.plotly_chart(fig_ct, use_container_width=True)
 
     with gc2:
-        # Action required distribution
         st.markdown('<div class="section-header">▌ Action Required</div>', unsafe_allow_html=True)
         act_counts = df_gap["Action_Required"].value_counts().reset_index()
         act_counts.columns = ["Action", "Count"]
         fig_act = px.pie(act_counts, names="Action", values="Count",
-                        hole=0.5,
-                        color_discrete_sequence=["#1565C0", "#E65100"])
+                         hole=0.5,
+                         color_discrete_sequence=["#1565C0", "#E65100"])
         fig_act.update_traces(textinfo="percent+label", textfont_size=12,
-                             marker=dict(line=dict(color="white", width=2)))
-        fig_act.update_layout(height=320, margin=dict(t=20,b=10,l=10,r=10),
-                             paper_bgcolor="rgba(0,0,0,0)")
+                              marker=dict(line=dict(color="white", width=2)))
+        fig_act.update_layout(height=320, margin=dict(t=20, b=10, l=10, r=10),
+                              paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_act, use_container_width=True)
 
     st.markdown("---")
 
-    # Top 20 Gap Keywords Horizontal Bar
     st.markdown('<div class="section-header">▌ Top 20 Content Gap Keywords by Gap Priority Score</div>',
                 unsafe_allow_html=True)
     top20_gap = df_gap.nlargest(20, "Gap_Priority_Score").copy()
@@ -456,7 +448,7 @@ with tab2:
         labels={"Gap_Priority_Score": "Gap Priority Score", "Keyword_Short": ""},
     )
     fig_gap_bar.update_layout(
-        height=550, margin=dict(t=10,b=10,l=10,r=80),
+        height=550, margin=dict(t=10, b=10, l=10, r=80),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(gridcolor="#ECEFF1"), coloraxis_showscale=False,
         yaxis=dict(tickfont=dict(size=11)),
@@ -465,19 +457,18 @@ with tab2:
 
     st.markdown("---")
 
-    # Competitor Ranking Gap Heatmap
     st.markdown('<div class="section-header">▌ Competitor Coverage Heatmap — Avg SERP Rank by Category</div>',
                 unsafe_allow_html=True)
 
     heatmap_data = {
-        "Keyword Category": ["Digital Mktg Agency","PPC / Paid Ads","SEO Services",
-                             "Social Media Mktg","Content Marketing","Branding","Growth Marketing"],
-        "Graphura":  [52.2, 59.8, 56.3, 59.0, 48.3, 47.6, 37.2],
-        "Social Beat":[4.1,  13.0,  4.0, 4.1,  5.3, 12.0, 50.0],
-        "WatConsult": [4.6,   4.0, 11.3, 4.5, 11.0,  6.0, 50.0],
-        "iProspect":  [4.3,   4.9,  4.3,12.2,  9.0, 13.0, 50.0],
-        "Webchutney": [4.3,  11.0, 14.2, 5.0,  3.7,  1.0, 50.0],
-        "Mirum India":[4.9,  12.4, 14.5,12.2,  3.0,  1.0, 50.0],
+        "Keyword Category": ["Digital Mktg Agency", "PPC / Paid Ads", "SEO Services",
+                             "Social Media Mktg", "Content Marketing", "Branding", "Growth Marketing"],
+        "Graphura":   [52.2, 59.8, 56.3, 59.0, 48.3, 47.6, 37.2],
+        "Social Beat": [4.1,  13.0,  4.0,  4.1,  5.3, 12.0, 50.0],
+        "WatConsult":  [4.6,   4.0, 11.3,  4.5, 11.0,  6.0, 50.0],
+        "iProspect":   [4.3,   4.9,  4.3, 12.2,  9.0, 13.0, 50.0],
+        "Webchutney":  [4.3,  11.0, 14.2,  5.0,  3.7,  1.0, 50.0],
+        "Mirum India": [4.9,  12.4, 14.5, 12.2,  3.0,  1.0, 50.0],
     }
     df_heat = pd.DataFrame(heatmap_data).set_index("Keyword Category")
 
@@ -485,8 +476,8 @@ with tab2:
         z=df_heat.values,
         x=df_heat.columns.tolist(),
         y=df_heat.index.tolist(),
-        colorscale=[[0,"#1B5E20"],[0.2,"#4CAF50"],[0.4,"#FFF9C4"],
-                    [0.6,"#F9A825"],[0.8,"#EF5350"],[1,"#B71C1C"]],
+        colorscale=[[0, "#1B5E20"], [0.2, "#4CAF50"], [0.4, "#FFF9C4"],
+                    [0.6, "#F9A825"], [0.8, "#EF5350"], [1, "#B71C1C"]],
         text=df_heat.values,
         texttemplate="%{text}",
         textfont={"size": 12, "color": "white"},
@@ -496,7 +487,7 @@ with tab2:
     ))
     fig_heat.update_layout(
         height=400,
-        margin=dict(t=20,b=20,l=10,r=10),
+        margin=dict(t=20, b=20, l=10, r=10),
         paper_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(side="top", tickfont=dict(size=12, color="#002366")),
         yaxis=dict(tickfont=dict(size=11)),
@@ -548,14 +539,13 @@ with tab3:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Roadmap Gantt-style timeline
     st.markdown('<div class="section-header">▌ Roadmap Timeline — Gap Priority Score by Month</div>',
                 unsafe_allow_html=True)
     road_chart = df_road.copy()
     road_chart["Keyword_Short"] = road_chart["Keyword"].str[:40]
     month_colors = {"Month 1": "#1A237E", "Month 2": "#1B5E20", "Month 3": "#4A148C"}
     fig_road = px.bar(
-        road_chart.sort_values(["Month","Gap_Priority_Score"], ascending=[True,False]).head(30),
+        road_chart.sort_values(["Month", "Gap_Priority_Score"], ascending=[True, False]).head(30),
         x="Gap_Priority_Score", y="Keyword_Short",
         color="Month", orientation="h",
         color_discrete_map=month_colors,
@@ -565,7 +555,7 @@ with tab3:
         barmode="overlay",
     )
     fig_road.update_layout(
-        height=600, margin=dict(t=10,b=10,l=10,r=50),
+        height=600, margin=dict(t=10, b=10, l=10, r=50),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(gridcolor="#ECEFF1"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -574,7 +564,6 @@ with tab3:
 
     st.markdown("---")
 
-    # Effort distribution
     re1, re2 = st.columns([1, 1])
     with re1:
         st.markdown('<div class="section-header">▌ Effort Level Distribution</div>', unsafe_allow_html=True)
@@ -582,21 +571,21 @@ with tab3:
         effort_c.columns = ["Effort", "Count"]
         effort_clr = {"Low": "#1B5E20", "Medium": "#F9A825", "High": "#B71C1C"}
         fig_effort = px.bar(effort_c, x="Effort", y="Count", text="Count",
-                           color="Effort", color_discrete_map=effort_clr)
+                            color="Effort", color_discrete_map=effort_clr)
         fig_effort.update_traces(textposition="outside")
-        fig_effort.update_layout(height=280, showlegend=False, margin=dict(t=10,b=10,l=10,r=10),
-                                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                                yaxis=dict(gridcolor="#ECEFF1"), xaxis_title="", yaxis_title="")
+        fig_effort.update_layout(height=280, showlegend=False, margin=dict(t=10, b=10, l=10, r=10),
+                                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                                 yaxis=dict(gridcolor="#ECEFF1"), xaxis_title="", yaxis_title="")
         st.plotly_chart(fig_effort, use_container_width=True)
 
     with re2:
         st.markdown('<div class="section-header">▌ Content Type by Month</div>', unsafe_allow_html=True)
-        ct_month = df_road.groupby(["Month","Content_to_Create"]).size().reset_index(name="Count")
+        ct_month = df_road.groupby(["Month", "Content_to_Create"]).size().reset_index(name="Count")
         fig_ct_m = px.bar(ct_month, x="Month", y="Count", color="Content_to_Create",
-                         color_discrete_sequence=["#1565C0","#1B5E20","#E65100"],
-                         barmode="group", text="Count")
+                          color_discrete_sequence=["#1565C0", "#1B5E20", "#E65100"],
+                          barmode="group", text="Count")
         fig_ct_m.update_traces(textposition="outside")
-        fig_ct_m.update_layout(height=280, margin=dict(t=10,b=10,l=10,r=10),
+        fig_ct_m.update_layout(height=280, margin=dict(t=10, b=10, l=10, r=10),
                                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                yaxis=dict(gridcolor="#ECEFF1"), xaxis_title="", yaxis_title="",
                                legend=dict(title="Content Type", font=dict(size=10)))
@@ -604,39 +593,38 @@ with tab3:
 
     st.markdown("---")
 
-    # Full Roadmap Table
     st.markdown('<div class="section-header">▌ Full Roadmap Table</div>', unsafe_allow_html=True)
     month_filter = st.selectbox("Filter by Month", ["All", "Month 1", "Month 2", "Month 3"])
     road_disp = df_road if month_filter == "All" else df_road[df_road["Month"] == month_filter]
-    road_disp = road_disp[["Priority_Rank","Month","Keyword","Keyword_Category",
-                            "Search_Volume","Gap_Priority_Score","Content_to_Create",
-                            "Action","Target_Ranking","Effort_Level"]].copy()
-    road_disp.columns = ["#","Month","Keyword","Category","Search Vol",
-                         "Gap Score","Content Type","Action","Target Rank","Effort"]
+    road_disp = road_disp[["Priority_Rank", "Month", "Keyword", "Keyword_Category",
+                            "Search_Volume", "Gap_Priority_Score", "Content_to_Create",
+                            "Action", "Target_Ranking", "Effort_Level"]].copy()
+    road_disp.columns = ["#", "Month", "Keyword", "Category", "Search Vol",
+                         "Gap Score", "Content Type", "Action", "Target Rank", "Effort"]
 
+    # FIX 3: corrected indentation of color_effort and color_month functions
     def color_effort(val):
-    m = {
-        "Low": "background-color:#E8F5E9;color:#1B5E20",
-        "Medium": "background-color:#FFFDE7;color:#E65100",
-        "High": "background-color:#FFEBEE;color:#B71C1C"
-    }
-    return m.get(val, "")
+        m = {
+            "Low": "background-color:#E8F5E9;color:#1B5E20",
+            "Medium": "background-color:#FFFDE7;color:#E65100",
+            "High": "background-color:#FFEBEE;color:#B71C1C"
+        }
+        return m.get(val, "")
 
-def color_month(val):
-    m = {
-        "Month 1": "background-color:#E8EAF6;color:#1A237E;font-weight:bold",
-        "Month 2": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
-        "Month 3": "background-color:#F3E5F5;color:#4A148C;font-weight:bold"
-    }
-    return m.get(val, "")
+    def color_month(val):
+        m = {
+            "Month 1": "background-color:#E8EAF6;color:#1A237E;font-weight:bold",
+            "Month 2": "background-color:#E8F5E9;color:#1B5E20;font-weight:bold",
+            "Month 3": "background-color:#F3E5F5;color:#4A148C;font-weight:bold"
+        }
+        return m.get(val, "")
 
+    styled_road = road_disp.style \
+        .map(color_effort, subset=["Effort"]) \
+        .map(color_month, subset=["Month"])
 
+    st.write(styled_road)
 
-styled_road = road_disp.style \
-    .map(color_effort, subset=["Effort"]) \
-    .map(color_month, subset=["Month"])
-
-st.write(styled_road)
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — CATEGORY INSIGHTS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -644,30 +632,29 @@ with tab4:
     st.markdown('<div class="section-header">▌ Keyword Category Deep-Dive</div>', unsafe_allow_html=True)
 
     cat_agg = dff.groupby("Keyword Category").agg(
-        Total=("Keyword","count"),
-        High=("Priority", lambda x: (x=="High").sum()),
-        Medium=("Priority", lambda x: (x=="Medium").sum()),
-        Low=("Priority", lambda x: (x=="Low").sum()),
-        Avg_Vol=("Search Volume","mean"),
-        Avg_Diff=("Keyword Difficulty","mean"),
-        Avg_Opp=("Opportunity Score","mean"),
-        Max_Opp=("Opportunity Score","max"),
-        Total_Vol=("Search Volume","sum"),
+        Total=("Keyword", "count"),
+        High=("Priority", lambda x: (x == "High").sum()),
+        Medium=("Priority", lambda x: (x == "Medium").sum()),
+        Low=("Priority", lambda x: (x == "Low").sum()),
+        Avg_Vol=("Search Volume", "mean"),
+        Avg_Diff=("Keyword Difficulty", "mean"),
+        Avg_Opp=("Opportunity Score", "mean"),
+        Max_Opp=("Opportunity Score", "max"),
+        Total_Vol=("Search Volume", "sum"),
     ).round(1).reset_index().sort_values("High", ascending=False)
 
     ci1, ci2 = st.columns([1, 1])
 
     with ci1:
-        # Stacked bar: priority by category
         st.markdown('<div class="section-header">▌ Priority Distribution by Category</div>', unsafe_allow_html=True)
-        cat_melt = cat_agg.melt(id_vars="Keyword Category", value_vars=["High","Medium","Low"],
+        cat_melt = cat_agg.melt(id_vars="Keyword Category", value_vars=["High", "Medium", "Low"],
                                 var_name="Priority", value_name="Count")
-        p_colors = {"High":"#1B5E20","Medium":"#F9A825","Low":"#B71C1C"}
+        p_colors = {"High": "#1B5E20", "Medium": "#F9A825", "Low": "#B71C1C"}
         fig_stacked = px.bar(cat_melt, x="Keyword Category", y="Count",
-                            color="Priority", color_discrete_map=p_colors,
-                            barmode="stack")
+                             color="Priority", color_discrete_map=p_colors,
+                             barmode="stack")
         fig_stacked.update_layout(
-            height=380, margin=dict(t=10,b=90,l=10,r=10),
+            height=380, margin=dict(t=10, b=90, l=10, r=10),
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             xaxis=dict(tickangle=-30, gridcolor="#ECEFF1"),
             yaxis=dict(gridcolor="#ECEFF1"),
@@ -677,17 +664,16 @@ with tab4:
         st.plotly_chart(fig_stacked, use_container_width=True)
 
     with ci2:
-        # Treemap: category by total search vol
         st.markdown('<div class="section-header">▌ Total Search Volume by Category (Treemap)</div>',
                     unsafe_allow_html=True)
         fig_tree = px.treemap(
             cat_agg, path=["Keyword Category"], values="Total_Vol",
             color="Avg_Opp",
-            color_continuous_scale=["#BBDEFB","#1565C0","#002366"],
-            hover_data={"Total":True,"High":True,"Avg_Opp":True},
+            color_continuous_scale=["#BBDEFB", "#1565C0", "#002366"],
+            hover_data={"Total": True, "High": True, "Avg_Opp": True},
         )
         fig_tree.update_layout(
-            height=380, margin=dict(t=10,b=10,l=10,r=10),
+            height=380, margin=dict(t=10, b=10, l=10, r=10),
             paper_bgcolor="rgba(0,0,0,0)",
             coloraxis_colorbar=dict(title="Avg Opp Score"),
         )
@@ -698,17 +684,16 @@ with tab4:
     ci3, ci4 = st.columns([1, 1])
 
     with ci3:
-        # Avg Opportunity Score by Category
         st.markdown('<div class="section-header">▌ Avg Opportunity Score by Category</div>',
                     unsafe_allow_html=True)
         cat_sorted = cat_agg.sort_values("Avg_Opp", ascending=True)
         fig_opp = px.bar(cat_sorted, x="Avg_Opp", y="Keyword Category",
-                        orientation="h", text="Avg_Opp",
-                        color="Avg_Opp",
-                        color_continuous_scale=["#E3F2FD","#1565C0","#002366"])
+                         orientation="h", text="Avg_Opp",
+                         color="Avg_Opp",
+                         color_continuous_scale=["#E3F2FD", "#1565C0", "#002366"])
         fig_opp.update_traces(textposition="outside")
         fig_opp.update_layout(
-            height=350, margin=dict(t=10,b=10,l=10,r=60),
+            height=350, margin=dict(t=10, b=10, l=10, r=60),
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             xaxis=dict(gridcolor="#ECEFF1"), yaxis_title="", xaxis_title="Avg Opportunity Score",
             coloraxis_showscale=False,
@@ -716,7 +701,6 @@ with tab4:
         st.plotly_chart(fig_opp, use_container_width=True)
 
     with ci4:
-        # Scatter: Avg Difficulty vs Avg Opportunity
         st.markdown('<div class="section-header">▌ Difficulty vs Opportunity by Category</div>',
                     unsafe_allow_html=True)
         fig_dv = px.scatter(
@@ -728,30 +712,28 @@ with tab4:
         )
         fig_dv.update_traces(textposition="top center", textfont_size=9)
         fig_dv.update_layout(
-            height=350, margin=dict(t=10,b=10,l=10,r=10),
+            height=350, margin=dict(t=10, b=10, l=10, r=10),
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             xaxis=dict(title="Avg Keyword Difficulty", gridcolor="#ECEFF1"),
             yaxis=dict(title="Avg Opportunity Score", gridcolor="#ECEFF1"),
             showlegend=False,
         )
-        # Quadrant annotations
-        fig_dv.add_annotation(x=20, y=cat_agg["Avg_Opp"].max()*0.9,
-            text="🎯 Quick Wins", showarrow=False,
-            font=dict(color="#1B5E20", size=10))
-        fig_dv.add_annotation(x=50, y=cat_agg["Avg_Opp"].max()*0.9,
-            text="⚠️ Hard & Valuable", showarrow=False,
-            font=dict(color="#E65100", size=10))
+        fig_dv.add_annotation(x=20, y=cat_agg["Avg_Opp"].max() * 0.9,
+                              text="🎯 Quick Wins", showarrow=False,
+                              font=dict(color="#1B5E20", size=10))
+        fig_dv.add_annotation(x=50, y=cat_agg["Avg_Opp"].max() * 0.9,
+                              text="⚠️ Hard & Valuable", showarrow=False,
+                              font=dict(color="#E65100", size=10))
         st.plotly_chart(fig_dv, use_container_width=True)
 
     st.markdown("---")
 
-    # Category Summary Table
     st.markdown('<div class="section-header">▌ Category Summary Table</div>', unsafe_allow_html=True)
     cat_display = cat_agg.copy()
-    cat_display.columns = ["Category","Total","High","Medium","Low",
-                           "Avg Search Vol","Avg Difficulty","Avg Opp Score",
-                           "Max Opp Score","Total Search Vol"]
-    cat_display["% High"] = (cat_display["High"]/cat_display["Total"]*100).round(0).astype(int).astype(str)+"%"
+    cat_display.columns = ["Category", "Total", "High", "Medium", "Low",
+                           "Avg Search Vol", "Avg Difficulty", "Avg Opp Score",
+                           "Max Opp Score", "Total Search Vol"]
+    cat_display["% High"] = (cat_display["High"] / cat_display["Total"] * 100).round(0).astype(int).astype(str) + "%"
     st.dataframe(cat_display, use_container_width=True, height=350)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -767,39 +749,37 @@ with tab5:
     ml1, ml2 = st.columns([1, 1])
 
     with ml1:
-        # ML label distribution
         ml_counts = dff["ML Label Name"].value_counts().reset_index()
         ml_counts.columns = ["ML Label", "Count"]
         ml_colors_map = {"High (2)": "#1B5E20", "Medium (1)": "#F9A825", "Low (0)": "#B71C1C"}
         fig_ml = px.pie(ml_counts, names="ML Label", values="Count", hole=0.55,
-                       color="ML Label", color_discrete_map=ml_colors_map)
+                        color="ML Label", color_discrete_map=ml_colors_map)
         fig_ml.update_traces(textinfo="percent+label", textfont_size=13,
-                            marker=dict(line=dict(color="white", width=2)))
+                             marker=dict(line=dict(color="white", width=2)))
         fig_ml.update_layout(height=340, paper_bgcolor="rgba(0,0,0,0)",
-                            margin=dict(t=20,b=10,l=10,r=10))
+                             margin=dict(t=20, b=10, l=10, r=10))
         st.plotly_chart(fig_ml, use_container_width=True)
 
     with ml2:
-        # Feature comparison: Opp Score by ML Label
         ml_agg = dff.groupby("ML Label Name").agg(
-            Avg_Vol=("Search Volume","mean"),
-            Avg_Diff=("Keyword Difficulty","mean"),
-            Avg_Opp=("Opportunity Score","mean"),
-            Avg_Rank=("Graphura Current Ranking","mean"),
-            Count=("Keyword","count"),
+            Avg_Vol=("Search Volume", "mean"),
+            Avg_Diff=("Keyword Difficulty", "mean"),
+            Avg_Opp=("Opportunity Score", "mean"),
+            Avg_Rank=("Graphura Current Ranking", "mean"),
+            Count=("Keyword", "count"),
         ).round(1).reset_index()
 
         fig_ml_feat = go.Figure()
-        features = ["Avg_Vol","Avg_Diff","Avg_Opp","Avg_Rank"]
-        feat_labels = ["Avg Search Vol","Avg KW Diff","Avg Opp Score","Avg Curr Rank"]
-        ml_order = ["High (2)","Medium (1)","Low (0)"]
-        ml_colors_lst = ["#1B5E20","#F9A825","#B71C1C"]
+        features = ["Avg_Vol", "Avg_Diff", "Avg_Opp", "Avg_Rank"]
+        feat_labels = ["Avg Search Vol", "Avg KW Diff", "Avg Opp Score", "Avg Curr Rank"]
+        ml_order = ["High (2)", "Medium (1)", "Low (0)"]
+        ml_colors_lst = ["#1B5E20", "#F9A825", "#B71C1C"]
 
-        for label,clr in zip(ml_order, ml_colors_lst):
-            row = ml_agg[ml_agg["ML Label Name"]==label]
-            if len(row)==0: continue
+        for label, clr in zip(ml_order, ml_colors_lst):
+            row = ml_agg[ml_agg["ML Label Name"] == label]
+            if len(row) == 0:
+                continue
             vals = [row[f].values[0] for f in features]
-            # Normalize for radar
             fig_ml_feat.add_trace(go.Bar(
                 name=label,
                 x=feat_labels,
@@ -810,7 +790,7 @@ with tab5:
             ))
         fig_ml_feat.update_layout(
             height=340, barmode="group",
-            margin=dict(t=10,b=10,l=10,r=10),
+            margin=dict(t=10, b=10, l=10, r=10),
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             yaxis=dict(gridcolor="#ECEFF1"),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
@@ -819,18 +799,17 @@ with tab5:
 
     st.markdown("---")
 
-    # Box plots: Opportunity Score distribution by ML Label
     st.markdown('<div class="section-header">▌ Opportunity Score Distribution by ML Label</div>',
                 unsafe_allow_html=True)
     fig_box = px.box(
         dff, x="ML Label Name", y="Opportunity Score",
         color="ML Label Name", color_discrete_map=ml_colors_map,
         points="outliers",
-        category_orders={"ML Label Name": ["High (2)","Medium (1)","Low (0)"]},
+        category_orders={"ML Label Name": ["High (2)", "Medium (1)", "Low (0)"]},
     )
     fig_box.update_layout(
         height=340, showlegend=False,
-        margin=dict(t=10,b=10,l=10,r=10),
+        margin=dict(t=10, b=10, l=10, r=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
         xaxis_title="ML Label", yaxis_title="Opportunity Score",
         yaxis=dict(gridcolor="#ECEFF1"),
@@ -839,20 +818,19 @@ with tab5:
 
     st.markdown("---")
 
-    # Model Feature Summary Table
     st.markdown('<div class="section-header">▌ Feature Pattern Summary per ML Label</div>',
                 unsafe_allow_html=True)
     ml_full = dff.groupby("ML Label Name").agg(
-        Count=("Keyword","count"),
-        Avg_Search_Vol=("Search Volume","mean"),
-        Avg_KW_Difficulty=("Keyword Difficulty","mean"),
-        Avg_Current_Rank=("Graphura Current Ranking","mean"),
-        Avg_Opportunity_Score=("Opportunity Score","mean"),
-        Avg_Relevance=("Relevance(0-100)","mean"),
+        Count=("Keyword", "count"),
+        Avg_Search_Vol=("Search Volume", "mean"),
+        Avg_KW_Difficulty=("Keyword Difficulty", "mean"),
+        Avg_Current_Rank=("Graphura Current Ranking", "mean"),
+        Avg_Opportunity_Score=("Opportunity Score", "mean"),
+        Avg_Relevance=("Relevance(0-100)", "mean"),
         Top_Intent=("Search Intent", lambda x: x.mode()[0]),
     ).round(1).reset_index()
-    ml_full.columns = ["ML Label","Count","Avg Search Vol","Avg KW Difficulty",
-                       "Avg Current Rank","Avg Opp Score","Avg Relevance","Top Intent"]
+    ml_full.columns = ["ML Label", "Count", "Avg Search Vol", "Avg KW Difficulty",
+                       "Avg Current Rank", "Avg Opp Score", "Avg Relevance", "Top Intent"]
     st.dataframe(ml_full, use_container_width=True)
 
     st.markdown("""
@@ -864,20 +842,14 @@ with tab5:
     > - **Train/Test split:** 80/20 stratified by ML Label
     """)
 
-
-
-    # ══════════════════════════════════════════════════════════════════════════════
-# TAB 6 — PRIORITY KEYWORDS (NEW)
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 6 — PRIORITY KEYWORDS
 # ══════════════════════════════════════════════════════════════════════════════
 with tab6:
     st.markdown('<div class="section-header">▌ High Priority & Top Keywords Strategy</div>', unsafe_allow_html=True)
 
-    # Split columns
-    pk1, pk2 = st.columns([1,1])
+    pk1, pk2 = st.columns([1, 1])
 
-    # ─────────────────────────────────────────
-    # HIGH PRIORITY KEYWORDS
-    # ─────────────────────────────────────────
     with pk1:
         st.markdown("### 🔥 High Priority Keywords (Immediate Focus)")
 
@@ -900,9 +872,6 @@ with tab6:
         - Quick ranking improvement possible
         """)
 
-    # ─────────────────────────────────────────
-    # TOP KEYWORDS (OVERALL BEST)
-    # ─────────────────────────────────────────
     with pk2:
         st.markdown("### 🚀 Top Keywords (Best Overall Opportunities)")
 
@@ -926,15 +895,12 @@ with tab6:
 
     st.markdown("---")
 
-    # ─────────────────────────────────────────
-    # VISUAL COMPARISON
-    # ─────────────────────────────────────────
     st.markdown('<div class="section-header">▌ High vs Top Keywords Comparison</div>', unsafe_allow_html=True)
 
-    comp_df = pd.concat([
-        high_df.assign(Type="High Priority"),
-        top_df.assign(Type="Top Keywords")
-    ])
+    # FIX 4: align columns before concat — top_df may have different cols than high_df
+    compare_high = high_df[["Keyword", "Opportunity Score"]].assign(Type="High Priority")
+    compare_top = top_df[["Keyword", "Opportunity Score"]].assign(Type="Top Keywords")
+    comp_df = pd.concat([compare_high, compare_top])
 
     fig_compare = px.bar(
         comp_df,
@@ -956,9 +922,6 @@ with tab6:
 
     st.markdown("---")
 
-    # ─────────────────────────────────────────
-    # DOWNLOAD SECTION
-    # ─────────────────────────────────────────
     st.markdown("### ⬇️ Download Keyword Lists")
 
     col_d1, col_d2 = st.columns(2)
